@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Amrutha Jewellers - Product Catalogue</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        gold: {
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#f8fafc] min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <div id="app-container" class="flex-1 flex flex-col">
+        <!-- ========================================== -->
+        <!-- PUBLIC NAVBAR (Visible on Home Collections Page) -->
+        <!-- ========================================== -->
+        <header id="public-header" class="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div class="cursor-pointer" onclick="navigate('home')">
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-brand-800 flex items-center gap-2">
+                        <span>Sri Amrutha Jewellers</span>
+                    </h1>
+                    <p class="text-xs sm:text-sm text-brand-600 font-semibold tracking-wide mt-0.5">Exquisite Collections</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="promptAdminLogin()" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-xl transition-all shadow-xs">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span>Admin</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========================================== -->
+        <!-- ADMIN NAVBAR (When Admin is logged in)     -->
+        <!-- ========================================== -->
+        <header id="admin-header" class="bg-brand-800 text-white shadow-md sticky top-0 z-30 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
+                    <p class="text-sm text-blue-200 font-medium">Sri Amrutha Jewellers</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="navigate('home')" class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-blue-100 hover:text-white bg-brand-700/70 hover:bg-brand-700 rounded-xl transition">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span>View Catalogue</span>
+                    </button>
+                    <button onclick="openModal('cloud-modal')" class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-blue-100 hover:text-white bg-brand-700/70 hover:bg-brand-700 rounded-xl transition" title="Firebase & Cloudinary Configuration">
+                        <i data-lucide="cloud" class="w-4 h-4"></i>
+                        <span>Cloud & Sync</span>
+                    </button>
+                    <button onclick="openModal('cipher-modal')" class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-blue-100 hover:text-white bg-brand-700/70 hover:bg-brand-700 rounded-xl transition" title="Customize Codeword Cipher">
+                        <i data-lucide="key-round" class="w-4 h-4"></i>
+                        <span>Cipher</span>
+                    </button>
+                    <button onclick="adminLogout()" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-rose-100 hover:text-white bg-rose-600/90 hover:bg-rose-600 rounded-xl transition shadow-sm">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========================================== -->
+        <!-- MAIN CONTENT AREA                          -->
+        <!-- ========================================== -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+            
+            <!-- VIEW 1: HOME - OUR COLLECTIONS -->
+            <section id="view-home" class="space-y-6">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Our Collections</h2>
+                    <p class="text-base text-slate-500 mt-1 font-medium">Explore our exclusive handcrafted jewellery designs</p>
+                </div>
+
+                <!-- Categories Grid (Matches Screenshot 1) -->
+                <div id="collections-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Dynamic Category Cards Inserted Here -->
+                </div>
+            </section>
+
+            <!-- VIEW 2: CATEGORY PRODUCTS SHOWCASE (Single Product Per Page) -->
+            <section id="view-category-products" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div class="flex items-center gap-3">
+                        <button onclick="navigate('home')" class="p-2.5 hover:bg-slate-200/80 rounded-xl transition text-slate-700">
+                            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                        </button>
+                        <div>
+                            <h2 id="category-showcase-title" class="text-3xl font-extrabold text-slate-900">Category Name</h2>
+                            <p id="category-showcase-subtitle" class="text-sm text-slate-500 font-semibold mt-0.5">Browse products</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Share Collection Button -->
+                        <button onclick="shareActiveCollection()" class="flex items-center gap-2 px-4 py-2.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-xl text-sm font-bold transition shadow-xs">
+                            <i data-lucide="share-2" class="w-4 h-4 text-brand-600"></i>
+                            <span>Share</span>
+                        </button>
+
+                        <div class="relative w-full sm:w-64">
+                            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="cat-search-input" oninput="filterCategoryProducts()" placeholder="Search product code..." class="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Product Container (Matches Screenshot 4) -->
+                <div id="single-product-showcase-container" class="max-w-2xl mx-auto">
+                    <!-- Injected dynamically -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="cat-empty-state" class="hidden py-20 text-center">
+                    <div class="w-20 h-20 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="package-open" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">No products found</h3>
+                    <p class="text-sm text-slate-500 mt-1">There are no products in this category yet.</p>
+                </div>
+            </section>
+
+            <!-- VIEW 3: ADMIN LOGIN (Matches Screenshot 2) -->
+            <section id="view-admin-login" class="max-w-md mx-auto py-12 hidden">
+                <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+                    <div class="text-center mb-6">
+                        <h2 class="text-3xl font-extrabold text-brand-800">Admin Login</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Sri Amrutha Jewellers</p>
+                    </div>
+
+                    <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-5">
+                        <div id="login-error" class="hidden text-sm text-rose-600 bg-rose-50 border border-rose-200 p-3 rounded-xl font-medium"></div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Username (ID)</label>
+                            <input type="text" id="login-username" required placeholder="" class="w-full px-4 py-3 text-sm bg-blue-50/40 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Password</label>
+                            <input type="password" id="login-password" required placeholder="" class="w-full px-4 py-3 text-sm bg-blue-50/40 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition font-medium">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-base rounded-xl shadow-sm transition">
+                            Login
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- VIEW 4: ADMIN DASHBOARD (Matches Screenshot 3) -->
+            <section id="view-admin-dashboard" class="space-y-8 hidden">
+                
+                <!-- Section 1: Current Rates (Matches Screenshot 3) -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-slate-900 tracking-tight">Current Rates</h3>
+                        <button onclick="openModal('rates-modal')" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-xl transition">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <span>Update Rates</span>
+                        </button>
+                    </div>
+
+                    <!-- Rates Cards Row -->
+                    <div id="admin-rates-row" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                        <!-- Dynamic Rate Cards -->
+                    </div>
+                </div>
+
+                <!-- Section 2: Categories (Matches Screenshot 3) -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-slate-900 tracking-tight">Categories</h3>
+                        <button onclick="openModal('category-modal')" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-xl transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Add Category</span>
+                        </button>
+                    </div>
+
+                    <!-- Category Pills Row -->
+                    <div id="admin-categories-pills" class="flex flex-wrap gap-3">
+                        <!-- Dynamic Category Pills -->
+                    </div>
+                </div>
+
+                <!-- Section 3: Products (Matches Screenshot 3) -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <h3 class="text-lg font-bold text-slate-900 tracking-tight">Products</h3>
+                        
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Search -->
+                            <div class="relative w-72">
+                                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                                <input type="text" id="admin-product-search" oninput="filterAdminProducts()" placeholder="Search product code..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white font-medium">
+                            </div>
+
+                            <!-- Category Filter Dropdown -->
+                            <select id="admin-category-filter" onchange="filterAdminProducts()" class="px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                                <option value="">All Categories</option>
+                            </select>
+
+                            <!-- Add Product Button -->
+                            <button onclick="openAddProductModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Add Product</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Products Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left border-collapse admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Code</th>
+                                    <th>Category</th>
+                                    <th>Metal</th>
+                                    <th>Carats</th>
+                                    <th>Item Wt</th>
+                                    <th>Net Wt</th>
+                                    <th>Stone Cost</th>
+                                    <th>VA%</th>
+                                    <th>MC</th>
+                                    <th>MRP</th>
+                                    <th>Price Code</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-products-tbody">
+                                <!-- Dynamic Product Rows Inserted Here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FOOTER                                     -->
+    <!-- ========================================== -->
+    <footer class="bg-white border-t border-slate-100 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-xs text-slate-400 font-medium">
+                © 2026 <span class="font-bold text-slate-700">Sri Amrutha Jewellers</span> • Exquisite Collections
+            </p>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- MODALS                                     -->
+    <!-- ========================================== -->
+
+    <!-- 1. ADD CATEGORY MODAL (Matches Screenshot 5) -->
+    <div id="category-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('category-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 relative z-10 mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-900">Add Category</h3>
+                <button onclick="closeModal('category-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleAddCategory(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Category Name</label>
+                    <input type="text" id="new-category-name" required placeholder="" class="w-full px-4 py-3 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-sm transition">
+                    Add Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. UPDATE RATES MODAL -->
+    <div id="rates-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('rates-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-slate-100 relative z-10 mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">Update Metal Rates</h3>
+                    <p class="text-sm text-slate-500 font-medium">Recalculates all product MRPs and Codewords instantly</p>
+                </div>
+                <button onclick="closeModal('rates-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveRates(event)" class="space-y-4">
+                <div id="rates-inputs-container" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                    <!-- Dynamic rate input rows -->
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('rates-modal')" class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Save & Recalculate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. ADD / EDIT PRODUCT MODAL (With Live Dynamic Formula Calculation) -->
+    <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('product-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-2xl p-6 rounded-2xl shadow-2xl border border-slate-100 relative z-10 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <div>
+                    <h3 id="product-modal-title" class="text-xl font-extrabold text-slate-900">Add Product</h3>
+                    <p class="text-sm text-slate-500 font-medium">Enter product parameters to generate pricing & codeword</p>
+                </div>
+                <button onclick="closeModal('product-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="product-form" onsubmit="handleSaveProduct(event)" class="space-y-5">
+                <input type="hidden" id="prod-id" value="">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Category <span class="text-rose-500">*</span></label>
+                        <select id="prod-category" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Product Code -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Product Code <span class="text-rose-500">*</span></label>
+                        <input type="text" id="prod-code" required placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl uppercase focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Metal Type -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Metal Type <span class="text-rose-500">*</span></label>
+                        <select id="prod-metal" onchange="onMetalTypeChange()" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                            <option value="Gold">Gold</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Diamond">Diamond</option>
+                            <option value="1 Gram Gold">1 Gram / Coating</option>
+                        </select>
+                    </div>
+
+                    <!-- Carats / Purity -->
+                    <div id="carats-group">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Carats / Purity</label>
+                        <select id="prod-carats" onchange="recalculateModalLivePreview()" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                            <option value="22k">22k (Gold)</option>
+                            <option value="18k">18k (Gold)</option>
+                            <option value="Silver">Fine Silver</option>
+                            <option value="Sterling 92.5">Sterling (92.5)</option>
+                            <option value="Coating">Gold Coating</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Weights -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Item Wt (Gross) (g) <span class="text-rose-500">*</span></label>
+                        <input type="number" step="0.01" id="prod-item-wt" oninput="onItemWtInput()" required placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+
+                    <div id="net-wt-group">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Net Wt (g)</label>
+                        <input type="number" step="0.01" id="prod-net-wt" oninput="recalculateModalLivePreview()" placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+
+                    <div id="stone-cost-group">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Stone Cost (₹)</label>
+                        <input type="number" step="1" id="prod-stone-cost" oninput="recalculateModalLivePreview()" placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                    </div>
+                </div>
+
+                <!-- Value Addition & Making Charges -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="charges-group">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">VA% (Value Addition / Wastage %)</label>
+                        <div class="relative">
+                            <input type="number" step="0.1" id="prod-va" oninput="recalculateModalLivePreview()" placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-bold">%</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Making Charges (MC ₹)</label>
+                        <div class="relative">
+                            <input type="number" step="1" id="prod-mc" oninput="recalculateModalLivePreview()" placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-bold">₹</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diamond Manual MRP Group -->
+                <div id="diamond-mrp-group" class="hidden">
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Diamond MRP (₹) <span class="text-rose-500">*</span></label>
+                    <input type="number" step="1" id="prod-manual-mrp" oninput="recalculateModalLivePreview()" placeholder="" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold">
+                </div>
+
+                <!-- Image Upload Section -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Product Image</label>
+                    <div class="flex items-center gap-4">
+                        <div id="prod-img-preview-box" class="w-24 h-24 rounded-2xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="prod-img-preview" src="" class="w-full h-full object-cover hidden">
+                            <i id="prod-img-placeholder" data-lucide="image" class="w-8 h-8 text-slate-400"></i>
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            <input type="file" id="prod-file-input" accept="image/*" onchange="handleImageFileSelect(event)" class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer">
+                            <p class="text-xs text-slate-400 font-medium">Upload jewellery photo (PNG, JPG, WEBP)</p>
+                            <input type="hidden" id="prod-image-url" value="">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE FORMULA CALCULATION PREVIEW BOX -->
+                <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-2.5">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-bold text-brand-900 flex items-center gap-2">
+                            <i data-lucide="calculator" class="w-5 h-5 text-brand-600"></i>
+                            Live Dynamic Pricing & Codeword:
+                        </span>
+                        <span id="preview-rate-indicator" class="text-xs text-brand-700 bg-white px-2.5 py-1 rounded-lg border border-blue-200 font-mono font-bold">Rate: ₹14700/g</span>
+                    </div>
+
+                    <div class="text-sm text-slate-700 font-mono bg-white p-3 rounded-xl border border-blue-100 font-medium" id="preview-formula-breakdown">
+                        Formula: ((1.73g + 20%) × ₹14700) + ₹550 = ₹31,067
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1.5">
+                        <div>
+                            <span class="text-sm text-slate-500 font-semibold">Calculated MRP:</span>
+                            <span id="preview-mrp" class="text-xl font-extrabold text-emerald-700 ml-1.5">₹31,067</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm text-slate-500 font-semibold">Price Codeword:</span>
+                            <span id="preview-price-code" class="text-xl font-black text-brand-700 tracking-wider font-mono ml-1.5">CA0FG</span>
+                            <span id="preview-breakdown-code" class="text-xs font-mono font-bold text-slate-500 ml-1.5">[VA | MC]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('product-modal')" class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. CIPHER SETTINGS MODAL -->
+    <div id="cipher-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('cipher-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 relative z-10 mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Codeword Cipher</h3>
+                    <p class="text-xs text-slate-500">Digit-to-Letter secret price code mapping</p>
+                </div>
+                <button onclick="closeModal('cipher-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveCipher(event)" class="space-y-4">
+                <div class="grid grid-cols-5 gap-2" id="cipher-inputs-grid">
+                    <!-- 10 digits 1..9, 0 -->
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="resetDefaultCipher()" class="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800">Reset Default</button>
+                    <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-brand-600 text-white rounded-lg">Save Cipher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. CLOUD & SYNC SETTINGS MODAL (Firebase & Cloudinary) -->
+    <div id="cloud-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('cloud-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-slate-100 relative z-10 mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Cloud & Database Sync</h3>
+                    <p class="text-xs text-slate-500">Firebase Realtime DB & Cloudinary Image Storage</p>
+                </div>
+                <button onclick="closeModal('cloud-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveCloudSettings(event)" class="space-y-5">
+                <!-- Firebase Config -->
+                <div class="p-4 bg-amber-50/50 border border-amber-200 rounded-xl space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 bg-amber-100 text-amber-800 rounded-lg">
+                            <i data-lucide="database" class="w-4 h-4"></i>
+                        </span>
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Firebase Realtime Database</h4>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Database URL</label>
+                        <input type="text" id="cloud-firebase-url" value="https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app" placeholder="" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg font-mono">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span id="firebase-sync-status" class="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Connected
+                        </span>
+                        <button type="button" onclick="syncWithFirebaseNow()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+                            Sync to Firebase
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cloudinary Config -->
+                <div class="p-4 bg-sky-50/50 border border-sky-200 rounded-xl space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 bg-sky-100 text-sky-800 rounded-lg">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                        </span>
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Cloudinary Image Storage</h4>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Cloud Name</label>
+                            <input type="text" id="cloud-cloudinary-name" value="do2kiuqp4" placeholder="" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Preset</label>
+                            <input type="text" id="cloud-cloudinary-preset" value="ml_default" placeholder="" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">API Key (Optional)</label>
+                        <input type="text" id="cloud-cloudinary-key" placeholder="" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg font-mono">
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                        Uploaded product images will be stored on Cloudinary CDN and linked in Firebase automatically.
+                    </p>
+                </div>
+
+                <!-- WhatsApp Default Number -->
+                <div class="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                    <div>
+                        <span class="block text-xs font-bold text-emerald-900">Enquiry WhatsApp Number</span>
+                        <span class="text-[11px] text-emerald-700 font-mono">+91 9492443916</span>
+                    </div>
+                    <input type="text" id="cloud-whatsapp-number" value="919492443916" class="w-36 px-2.5 py-1 text-xs bg-white border border-emerald-300 rounded font-mono text-slate-800">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('cloud-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Save Cloud Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. RICH FULLSCREEN PRODUCT DETAILS MODAL -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('lightbox-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-4xl rounded-3xl shadow-2xl relative z-10 max-h-[94vh] flex flex-col mx-4 overflow-hidden border border-slate-200">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center px-6 py-4 bg-slate-900 text-white">
+                <div class="flex items-center gap-3">
+                    <span id="fs-product-code" class="text-xl font-black font-mono tracking-tight text-blue-400">SAJ-0001</span>
+                    <span id="fs-product-metal" class="text-xs font-bold bg-blue-600/80 text-white px-3 py-1 rounded-lg">22k Gold</span>
+                </div>
+                <button onclick="closeModal('lightbox-modal')" class="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Image + Details) -->
+            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <!-- Large Image (Edge-to-Edge) -->
+                <div class="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[60vh] aspect-square shadow-inner">
+                    <img id="lightbox-img" src="" class="max-h-[60vh] w-full object-contain">
+                </div>
+
+                <!-- Product Details Box -->
+                <div class="space-y-6 flex flex-col justify-between">
+                    <div>
+                        <div class="border-b border-slate-100 pb-4">
+                            <span id="fs-product-category" class="text-xs font-bold text-brand-600 uppercase tracking-wider">Gold Black Beads</span>
+                            <h3 id="fs-product-title" class="text-2xl font-black text-slate-900 mt-1">SAJ-0001</h3>
+                        </div>
+
+                        <!-- Weights & Codewords Grid -->
+                        <div class="grid grid-cols-2 gap-4 py-4 border-b border-slate-100">
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <span class="block text-xs font-bold text-slate-400 uppercase">Gross Weight</span>
+                                <span id="fs-item-wt" class="text-base font-extrabold text-slate-800">2.07g</span>
+                            </div>
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <span class="block text-xs font-bold text-slate-400 uppercase">Net Weight</span>
+                                <span id="fs-net-wt" class="text-base font-extrabold text-slate-800">1.73g</span>
+                            </div>
+                        </div>
+
+                        <!-- Price Codeword Showcase (No "Price Codeword" or "[VA | MC]" label) -->
+                        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 mt-4 flex items-center justify-between">
+                            <div id="fs-breakdown-code" class="text-base font-bold text-slate-700 font-mono">
+                                BO | EE0
+                            </div>
+                            <div id="fs-price-code" class="text-3xl font-black text-brand-700 font-mono tracking-wider">
+                                CA0FG
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Button inside Fullscreen Modal -->
+                    <div id="fs-whatsapp-container">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. SHARE COLLECTION MODAL -->
+    <div id="share-collection-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeModal('share-collection-modal')"></div>
+        <div class="modal-enter bg-white w-full max-w-md p-6 rounded-3xl shadow-2xl border border-slate-100 relative z-10 mx-4 space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-900">Share Collection</h3>
+                    <p id="share-modal-subtitle" class="text-xs text-slate-500 font-medium">Collection Link</p>
+                </div>
+                <button onclick="closeModal('share-collection-modal')" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Share Options -->
+            <div class="space-y-4">
+                <!-- Share on WhatsApp Button -->
+                <button id="share-whatsapp-btn" onclick="executeShareWhatsApp()" class="flex items-center justify-center gap-3 w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-base font-bold transition shadow-sm">
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                    <span>Share via WhatsApp</span>
+                </button>
+
+                <!-- Direct URL Box with Copy Button -->
+                <div class="space-y-1.5 pt-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Collection Link</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="share-direct-url" readonly class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-700 select-all">
+                        <button onclick="copyShareLink()" id="share-copy-btn" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shrink-0 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span id="share-copy-btn-text">Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

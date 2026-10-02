@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cinzel:wght@600;700;800&display=swap');
+
+:root {
+    --brand-primary: #1e40af;
+    --brand-primary-light: #3b82f6;
+    --brand-accent: #d97706;
+    --brand-bg: #f8fafc;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+}
+
+.brand-font {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.serif-title {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Category Card */
+.category-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid #e2e8f0;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
+    border-color: #93c5fd;
+}
+
+/* Product Card */
+.product-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+}
+
+/* Codeword Text */
+.codeword-badge {
+    letter-spacing: 0.12em;
+    font-family: 'Plus Jakarta Sans', monospace, sans-serif;
+}
+
+/* Modal animation */
+.modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.modal-enter {
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Table styling */
+.admin-table th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+    font-weight: 700;
+    padding: 1rem 1.15rem;
+    background-color: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-table td {
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+}
+
+.admin-table tr:hover td {
+    background-color: #f8fafc;
+}
