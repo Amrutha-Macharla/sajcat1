@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for Sri Amrutha Jewellers Calculation & Codeword Cipher Engine
+Unit tests for Amrutha Jewellers Calculation & Codeword Cipher Engine
 """
 import unittest
 from server import calculate_product_pricing, encode_codeword, DEFAULT_CIPHER

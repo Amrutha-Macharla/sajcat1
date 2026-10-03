@@ -1,5 +1,5 @@
 /**
- * Sri Amrutha Jewellers Catalogue & Pricing Application
+ * Amrutha Jewellers Catalogue & Pricing Application
  * Integrated with Firebase Realtime Database & Cloudinary
  */
 
@@ -357,8 +357,8 @@ function shareCollectionById(catId) {
     if (!cat) return;
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?category=${cat.id}`;
-    const shareTitle = `${cat.name} - Sri Amrutha Jewellers`;
-    const shareMessage = `✨ *Sri Amrutha Jewellers - ${cat.name} Collection*\n\nExplore our latest handcrafted jewellery designs here:\n🔗 ${shareUrl}`;
+    const shareTitle = `${cat.name} - Amrutha Jewellers`;
+    const shareMessage = `✨ *Amrutha Jewellers - ${cat.name} Collection*\n\nExplore our latest handcrafted jewellery designs here:\n🔗 ${shareUrl}`;
 
     currentShareData = {
         title: shareTitle,
@@ -371,7 +371,7 @@ function shareCollectionById(catId) {
     if (navigator.share) {
         navigator.share({
             title: shareTitle,
-            text: `Explore our exclusive ${cat.name} collection at Sri Amrutha Jewellers:`,
+            text: `Explore our exclusive ${cat.name} collection at Amrutha Jewellers:`,
             url: shareUrl
         }).catch((err) => {
             // If user cancels or fallback needed, open modal
@@ -700,7 +700,7 @@ function sendWhatsAppEnquiry(prodCode) {
     const whatsappNum = state.whatsappNumber || DEFAULT_WHATSAPP_NUMBER;
     const catName = p.category_name || (state.activeCategory ? state.activeCategory.name : '');
     
-    let msg = `*Sri Amrutha Jewellers - Product Enquiry*\n`;
+    let msg = `*Amrutha Jewellers - Product Enquiry*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `🏷️ *Product Code:* ${p.code}\n`;
     msg += `📂 *Category:* ${catName}\n`;
@@ -906,7 +906,7 @@ function generateNextProductCode() {
     });
     const maxNum = nums.length > 0 ? Math.max(...nums) : 0;
     const next = maxNum + 1;
-    return `SAJ-${String(next).padStart(4, '0')}`;
+    return `AJ-${String(next).padStart(4, '0')}`;
 }
 
 // ==========================================
