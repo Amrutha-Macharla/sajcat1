@@ -128,7 +128,7 @@ def init_db():
         cursor.execute("INSERT INTO settings (key, value) VALUES ('admin_username', 'admin')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('firebase_url', 'https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('whatsapp_number', '919492443916')")
-        cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_name', 'do2kiuqp4')")
+        cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_name', 'hgcqngwq')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_preset', 'ml_default')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_key', '')")
 
