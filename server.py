@@ -127,7 +127,7 @@ def init_db():
         cursor.execute("INSERT INTO settings (key, value) VALUES ('store_tagline', 'Exquisite Collections')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('admin_username', 'admin')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('firebase_url', 'https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app')")
-        cursor.execute("INSERT INTO settings (key, value) VALUES ('whatsapp_number', '919492443916')")
+        cursor.execute("INSERT INTO settings (key, value) VALUES ('whatsapp_number', '919848728844')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_name', 'hgcqngwq')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_preset', 'ml_default')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_key', '')")
@@ -475,6 +475,11 @@ class CatalogueHTTPHandler(BaseHTTPRequestHandler):
             file_bytes = base64.b64decode(encoded)
             file_path = os.path.join(UPLOADS_DIR, filename)
             with open(file_path, 'wb') as f:
+                f.write(file_bytes)
+            
+            pub_upload_dir = os.path.join(PUBLIC_DIR, 'uploads')
+            os.makedirs(pub_upload_dir, exist_ok=True)
+            with open(os.path.join(pub_upload_dir, filename), 'wb') as f:
                 f.write(file_bytes)
             
             conn.close()

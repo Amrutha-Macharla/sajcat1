@@ -9,7 +9,7 @@ const DEFAULT_CIPHER = {
 };
 
 const DEFAULT_FIREBASE_URL = "https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app";
-const DEFAULT_WHATSAPP_NUMBER = "919492443916";
+const DEFAULT_WHATSAPP_NUMBER = "919848728844";
 const DEFAULT_CLOUDINARY_NAME = "hgcqngwq";
 const DEFAULT_CLOUDINARY_PRESET = "ml_default";
 
@@ -23,8 +23,13 @@ if (localStorage.getItem('aj_cloudinary_name') === "agc6iqec" ||
     localStorage.getItem('aj_cloudinary_name') === "do2kiuqp4") {
     localStorage.setItem('aj_cloudinary_name', DEFAULT_CLOUDINARY_NAME);
 }
-if (localStorage.getItem('aj_cloudinary_preset') === "ajcat5") {
+if (!localStorage.getItem('aj_cloudinary_preset') || localStorage.getItem('aj_cloudinary_preset') === "ajcat5") {
     localStorage.setItem('aj_cloudinary_preset', DEFAULT_CLOUDINARY_PRESET);
+}
+if (!localStorage.getItem('aj_whatsapp_number') ||
+    localStorage.getItem('aj_whatsapp_number') === "919492443916" ||
+    localStorage.getItem('aj_whatsapp_number') === "9492443916") {
+    localStorage.setItem('aj_whatsapp_number', DEFAULT_WHATSAPP_NUMBER);
 }
 
 const DEFAULT_RATES = [
@@ -692,13 +697,17 @@ function openFullscreenProduct(prodCode) {
 }
 
 // ==========================================
-// WHATSAPP ENQUIRY ACTION (To 9492443916)
+// WHATSAPP ENQUIRY ACTION (To 9848728844)
 // ==========================================
 function sendWhatsAppEnquiry(prodCode) {
     const p = state.products.find(x => x.code === prodCode);
     if (!p) return;
 
-    const whatsappNum = state.whatsappNumber || DEFAULT_WHATSAPP_NUMBER;
+    let whatsappNum = state.whatsappNumber || DEFAULT_WHATSAPP_NUMBER;
+    whatsappNum = String(whatsappNum).replace(/[^0-9]/g, '');
+    if (whatsappNum.length === 10) {
+        whatsappNum = '91' + whatsappNum;
+    }
     const catName = p.category_name || (state.activeCategory ? state.activeCategory.name : '');
     
     let msg = `*Amrutha Jewellers - Product Enquiry*\n`;
@@ -940,6 +949,7 @@ function openAddProductModal() {
     const fileInp = document.getElementById('prod-file-input');
     if (fileInp) fileInp.value = "";
     updateImagePreview("");
+    setUploadingState(false, "Upload jewellery photo (PNG, JPG, WEBP)");
 
     onMetalTypeChange();
     recalculateModalLivePreview();
@@ -964,6 +974,9 @@ function openEditProductModal(prodId) {
     document.getElementById('prod-mc').value = p.mc || '';
     document.getElementById('prod-manual-mrp').value = p.manual_mrp || '';
     document.getElementById('prod-image-url').value = p.image_url || '';
+    const fileInp = document.getElementById('prod-file-input');
+    if (fileInp) fileInp.value = "";
+    setUploadingState(false, p.image_url ? "Existing photo loaded (select new file to replace)" : "Upload jewellery photo (PNG, JPG, WEBP)");
 
     updateImagePreview(p.image_url);
     onMetalTypeChange();
@@ -1060,59 +1073,138 @@ function updateImagePreview(url) {
     }
 }
 
+let currentUploadPromise = null;
+
+function setUploadingState(isUploading, message = "") {
+    const spinner = document.getElementById('prod-img-uploading-spinner');
+    const statusEl = document.getElementById('prod-upload-status');
+    const saveBtn = document.getElementById('btn-save-product');
+
+    if (spinner) {
+        if (isUploading) spinner.classList.remove('hidden');
+        else spinner.classList.add('hidden');
+    }
+    if (statusEl && message) {
+        statusEl.innerHTML = message;
+    }
+    if (saveBtn) {
+        saveBtn.disabled = isUploading;
+        if (isUploading) {
+            saveBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            saveBtn.innerHTML = `<span class="inline-block animate-spin mr-1.5">⏳</span> Uploading...`;
+        } else {
+            saveBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            saveBtn.innerHTML = `Save Product`;
+        }
+    }
+}
+
 async function handleImageFileSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check Cloudinary direct upload
-    if (state.cloudinaryName && state.cloudinaryPreset) {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', state.cloudinaryPreset);
-            if (state.cloudinaryKey) formData.append('api_key', state.cloudinaryKey);
+    // Immediately show local preview so user sees what they selected instantly
+    try {
+        const localUrl = URL.createObjectURL(file);
+        updateImagePreview(localUrl);
+    } catch (err) {}
 
-            const uploadUrl = `https://api.cloudinary.com/v1_1/${state.cloudinaryName}/image/upload`;
-            const clRes = await fetch(uploadUrl, { method: 'POST', body: formData });
-            const clData = await clRes.json();
-            
-            if (clData.secure_url) {
-                document.getElementById('prod-image-url').value = clData.secure_url;
-                updateImagePreview(clData.secure_url);
-                return;
+    setUploadingState(true, `<span class="text-amber-600 font-semibold flex items-center gap-1"><span class="animate-spin">⏳</span> Uploading photo...</span>`);
+
+    currentUploadPromise = (async () => {
+        let uploadedUrl = null;
+
+        // 1. Try Cloudinary direct upload if configured
+        if (state.cloudinaryName && state.cloudinaryPreset) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', state.cloudinaryPreset);
+                if (state.cloudinaryKey) formData.append('api_key', state.cloudinaryKey);
+
+                const uploadUrl = `https://api.cloudinary.com/v1_1/${state.cloudinaryName}/image/upload`;
+                const clRes = await fetch(uploadUrl, { method: 'POST', body: formData });
+                const clData = await clRes.json();
+
+                if (clData.secure_url) {
+                    uploadedUrl = clData.secure_url;
+                } else if (clData.error) {
+                    console.warn("Cloudinary upload rejected:", clData.error.message);
+                }
+            } catch (err) {
+                console.warn("Cloudinary network error:", err);
             }
-        } catch (err) {
-            console.warn("Cloudinary direct upload fallback:", err);
         }
+
+        // 2. Fallback to local server upload if Cloudinary was not used or failed
+        if (!uploadedUrl) {
+            try {
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: `product_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
+                        image_data: base64Data
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.url) {
+                    uploadedUrl = data.url;
+                } else {
+                    uploadedUrl = base64Data;
+                }
+            } catch (err) {
+                console.warn("Local upload error, using base64 fallback:", err);
+            }
+        }
+
+        if (uploadedUrl) {
+            document.getElementById('prod-image-url').value = uploadedUrl;
+            updateImagePreview(uploadedUrl);
+            setUploadingState(false, `<span class="text-emerald-600 font-semibold flex items-center gap-1">✓ Photo ready for saving</span>`);
+        } else {
+            setUploadingState(false, `<span class="text-rose-500 font-semibold">Upload failed. Please try again.</span>`);
+        }
+    })();
+
+    try {
+        await currentUploadPromise;
+    } finally {
+        currentUploadPromise = null;
     }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-        const base64Data = event.target.result;
-        updateImagePreview(base64Data);
-
-        try {
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    filename: `product_${Date.now()}_${file.name}`,
-                    image_data: base64Data
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('prod-image-url').value = data.url;
-            }
-        } catch (err) {
-            document.getElementById('prod-image-url').value = base64Data;
-        }
-    };
-    reader.readAsDataURL(file);
 }
 
 async function handleSaveProduct(e) {
     e.preventDefault();
+
+    // If an upload is currently in progress, wait for it to finish!
+    if (currentUploadPromise) {
+        setUploadingState(true, `<span class="text-amber-600 font-semibold">Finishing photo upload...</span>`);
+        await currentUploadPromise;
+    }
+
+    // Double check: if user picked a file but prod-image-url is somehow still empty, convert file to data URL right here
+    const fileInp = document.getElementById('prod-file-input');
+    let image_url = document.getElementById('prod-image-url').value || '';
+    if (!image_url && fileInp && fileInp.files && fileInp.files[0]) {
+        try {
+            const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(fileInp.files[0]);
+            });
+            image_url = base64Data;
+            document.getElementById('prod-image-url').value = image_url;
+        } catch (e) {}
+    }
     
     const prodId = document.getElementById('prod-id').value || ('prod_' + Date.now().toString(36));
     const code = document.getElementById('prod-code').value.trim() || generateNextProductCode();
@@ -1125,7 +1217,6 @@ async function handleSaveProduct(e) {
     const va_percent = document.getElementById('prod-va').value;
     const mc = document.getElementById('prod-mc').value;
     const manual_mrp = document.getElementById('prod-manual-mrp').value;
-    const image_url = document.getElementById('prod-image-url').value || '';
 
     const catObj = state.categories.find(c => c.id === category_id);
     const category_name = catObj ? catObj.name : 'General';
