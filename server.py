@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Amrutha Jewellers Product Catalogue Server
+Sri Amrutha Jewellers Product Catalogue Server
 High-performance REST API and Static Web Server with SQLite
 """
 
@@ -123,7 +123,7 @@ def init_db():
     cursor.execute("SELECT COUNT(*) FROM settings WHERE key = 'cipher'")
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cipher', ?)", (json.dumps(DEFAULT_CIPHER),))
-        cursor.execute("INSERT INTO settings (key, value) VALUES ('store_name', 'Amrutha Jewellers')")
+        cursor.execute("INSERT INTO settings (key, value) VALUES ('store_name', 'Sri Amrutha Jewellers')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('store_tagline', 'Exquisite Collections')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('admin_username', 'admin')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('firebase_url', 'https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app')")
@@ -131,6 +131,7 @@ def init_db():
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_name', 'hgcqngwq')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_preset', 'ml_default')")
         cursor.execute("INSERT INTO settings (key, value) VALUES ('cloudinary_key', '')")
+        cursor.execute("INSERT INTO settings (key, value) VALUES ('estimation_pin', '5473')")
 
     conn.commit()
     conn.close()
@@ -325,6 +326,7 @@ class CatalogueHTTPHandler(BaseHTTPRequestHandler):
             mime, _ = mimetypes.guess_type(file_path)
             self.send_response(200)
             self.send_header('Content-Type', mime or 'text/html')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
             self.end_headers()
             with open(file_path, 'rb') as f:
                 self.wfile.write(f.read())
@@ -335,6 +337,7 @@ class CatalogueHTTPHandler(BaseHTTPRequestHandler):
         if os.path.isfile(index_file):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
             self.end_headers()
             with open(index_file, 'rb') as f:
                 self.wfile.write(f.read())
@@ -412,7 +415,7 @@ class CatalogueHTTPHandler(BaseHTTPRequestHandler):
             if not code:
                 cursor.execute("SELECT COUNT(*) FROM products")
                 count = cursor.fetchone()[0] + 1
-                code = f"AJ-{count:04d}"
+                code = f"SAJ-{count:04d}"
 
             cat_id = body.get('category_id')
             cursor.execute("SELECT name FROM categories WHERE id = ?", (cat_id,))
@@ -530,7 +533,7 @@ def run_server(port=8000):
     server_address = ('', port)
     httpd = HTTPServer(server_address, CatalogueHTTPHandler)
     print(f"==================================================")
-    print(f" Amrutha Jewellers Catalogue Server Running!")
+    print(f" Sri Amrutha Jewellers Catalogue Server Running!")
     print(f" URL: http://localhost:{port}")
     print(f" Admin Portal: http://localhost:{port}/admin")
     print(f"==================================================")

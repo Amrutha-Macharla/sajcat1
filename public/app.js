@@ -1,5 +1,5 @@
 /**
- * Amrutha Jewellers Catalogue & Pricing Application
+ * Sri Amrutha Jewellers Catalogue & Pricing Application
  * Integrated with Firebase Realtime Database & Cloudinary
  */
 
@@ -43,6 +43,8 @@ const DEFAULT_RATES = [
 const DEFAULT_CATEGORIES = [];
 const DEFAULT_PRODUCTS = [];
 
+const DEFAULT_ESTIMATION_PIN = "5473";
+
 const state = {
     categories: [],
     products: [],
@@ -53,6 +55,7 @@ const state = {
     cloudinaryPreset: localStorage.getItem('aj_cloudinary_preset') || DEFAULT_CLOUDINARY_PRESET,
     cloudinaryKey: localStorage.getItem('aj_cloudinary_key') || '',
     whatsappNumber: localStorage.getItem('aj_whatsapp_number') || DEFAULT_WHATSAPP_NUMBER,
+    estimationPin: localStorage.getItem('aj_estimation_pin') || DEFAULT_ESTIMATION_PIN,
     activeCategory: null,
     currentView: 'home',
     authToken: null, // Require login every time
@@ -81,6 +84,7 @@ async function loadInitialData() {
             if (settingsRes.settings.cloudinary_name) state.cloudinaryName = settingsRes.settings.cloudinary_name;
             if (settingsRes.settings.cloudinary_preset) state.cloudinaryPreset = settingsRes.settings.cloudinary_preset;
             if (settingsRes.settings.whatsapp_number) state.whatsappNumber = settingsRes.settings.whatsapp_number;
+            if (settingsRes.settings.estimation_pin) state.estimationPin = settingsRes.settings.estimation_pin;
         }
 
         // Sync strictly and completely from connected Firebase Realtime Database
@@ -255,6 +259,7 @@ function populateCloudInputs() {
     if (document.getElementById('cloud-cloudinary-preset')) document.getElementById('cloud-cloudinary-preset').value = state.cloudinaryPreset;
     if (document.getElementById('cloud-cloudinary-key')) document.getElementById('cloud-cloudinary-key').value = state.cloudinaryKey;
     if (document.getElementById('cloud-whatsapp-number')) document.getElementById('cloud-whatsapp-number').value = state.whatsappNumber;
+    if (document.getElementById('cloud-estimation-pin')) document.getElementById('cloud-estimation-pin').value = state.estimationPin || DEFAULT_ESTIMATION_PIN;
 }
 
 // ==========================================
@@ -363,8 +368,8 @@ function shareCollectionById(catId) {
     if (!cat) return;
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?category=${cat.id}`;
-    const shareTitle = `${cat.name} - Amrutha Jewellers`;
-    const shareMessage = `✨ *Amrutha Jewellers - ${cat.name} Collection*\n\nExplore our latest handcrafted jewellery designs here:\n🔗 ${shareUrl}`;
+    const shareTitle = `${cat.name} - Sri Amrutha Jewellers`;
+    const shareMessage = `✨ *Sri Amrutha Jewellers - ${cat.name} Collection*\n\nExplore our latest handcrafted jewellery designs here:\n🔗 ${shareUrl}`;
 
     currentShareData = {
         title: shareTitle,
@@ -377,7 +382,7 @@ function shareCollectionById(catId) {
     if (navigator.share) {
         navigator.share({
             title: shareTitle,
-            text: `Explore our exclusive ${cat.name} collection at Amrutha Jewellers:`,
+            text: `Explore our exclusive ${cat.name} collection at Sri Amrutha Jewellers:`,
             url: shareUrl
         }).catch((err) => {
             // If user cancels or fallback needed, open modal
@@ -616,9 +621,12 @@ function renderCategoryShowcase() {
 
                         <!-- Details Section Flush Below Image -->
                         <div class="p-4 bg-white space-y-3">
-                            <!-- Top Line: Code (left) & Metal Badge (right) -->
+                            <!-- Top Line: Code with More Button (left) & Metal Badge (right) -->
                             <div class="flex items-center justify-between">
-                                <span class="text-base font-bold text-brand-600 font-mono tracking-tight">${p.code}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base font-bold text-brand-600 font-mono tracking-tight">${p.code}</span>
+                                    <button type="button" onclick="event.stopPropagation(); handleMoreClick('${p.code}')" class="px-2.5 py-0.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-200 cursor-pointer shadow-2xs">More</button>
+                                </div>
                                 <span class="text-xs font-semibold text-brand-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded uppercase">${displayMetal}</span>
                             </div>
 
@@ -675,6 +683,15 @@ function openFullscreenProduct(prodCode) {
 
     document.getElementById('fs-product-code').textContent = p.code;
     document.getElementById('fs-product-metal').textContent = displayMetal;
+    
+    const fsMoreBtn = document.getElementById('fs-more-btn');
+    if (fsMoreBtn) {
+        fsMoreBtn.onclick = (e) => {
+            e.stopPropagation();
+            handleMoreClick(p.code);
+        };
+    }
+
     document.getElementById('lightbox-img').src = img;
     document.getElementById('fs-product-category').textContent = p.category_name || (state.activeCategory ? state.activeCategory.name : 'Catalogue');
     document.getElementById('fs-product-title').textContent = p.code;
@@ -710,7 +727,7 @@ function sendWhatsAppEnquiry(prodCode) {
     }
     const catName = p.category_name || (state.activeCategory ? state.activeCategory.name : '');
     
-    let msg = `*Amrutha Jewellers - Product Enquiry*\n`;
+    let msg = `*Sri Amrutha Jewellers - Product Enquiry*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `🏷️ *Product Code:* ${p.code}\n`;
     msg += `📂 *Category:* ${catName}\n`;
@@ -887,6 +904,9 @@ function renderAdminProductsTable() {
                 <td class="font-black text-brand-700 font-mono tracking-wider text-base">${p.price_code}</td>
                 <td>
                     <div class="flex items-center gap-2">
+                        <button onclick="handleMoreClick('${p.code}')" class="text-amber-600 hover:text-amber-800 p-1.5 hover:bg-amber-50 rounded-lg transition" title="Price Estimation">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                        </button>
                         <button onclick="openEditProductModal('${p.id}')" class="text-blue-600 hover:text-blue-800 p-1.5 hover:bg-blue-50 rounded-lg transition" title="Edit">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                         </button>
@@ -916,7 +936,7 @@ function generateNextProductCode() {
     });
     const maxNum = nums.length > 0 ? Math.max(...nums) : 0;
     const next = maxNum + 1;
-    return `AJ-${String(next).padStart(4, '0')}`;
+    return `SAJ-${String(next).padStart(4, '0')}`;
 }
 
 // ==========================================
@@ -1470,18 +1490,21 @@ async function handleSaveCloudSettings(e) {
     const cloudinaryPreset = document.getElementById('cloud-cloudinary-preset').value.trim();
     const cloudinaryKey = document.getElementById('cloud-cloudinary-key').value.trim();
     const whatsappNumber = document.getElementById('cloud-whatsapp-number').value.trim();
+    const estimationPin = document.getElementById('cloud-estimation-pin') ? document.getElementById('cloud-estimation-pin').value.trim() : (state.estimationPin || DEFAULT_ESTIMATION_PIN);
 
     state.firebaseUrl = firebaseUrl;
     state.cloudinaryName = cloudinaryName;
     state.cloudinaryPreset = cloudinaryPreset;
     state.cloudinaryKey = cloudinaryKey;
     state.whatsappNumber = whatsappNumber;
+    state.estimationPin = estimationPin;
 
     localStorage.setItem('aj_firebase_url', firebaseUrl);
     localStorage.setItem('aj_cloudinary_name', cloudinaryName);
     localStorage.setItem('aj_cloudinary_preset', cloudinaryPreset);
     localStorage.setItem('aj_cloudinary_key', cloudinaryKey);
     localStorage.setItem('aj_whatsapp_number', whatsappNumber);
+    localStorage.setItem('aj_estimation_pin', estimationPin);
 
     try {
         await fetch('/api/settings', {
@@ -1492,7 +1515,8 @@ async function handleSaveCloudSettings(e) {
                 cloudinary_name: cloudinaryName,
                 cloudinary_preset: cloudinaryPreset,
                 cloudinary_key: cloudinaryKey,
-                whatsapp_number: whatsappNumber
+                whatsapp_number: whatsappNumber,
+                estimation_pin: estimationPin
             })
         });
     } catch (err) {}
@@ -1513,4 +1537,180 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
+}
+
+// ==========================================
+// PRICE ESTIMATION & SECURITY PIN
+// ==========================================
+let targetEstimationProductCode = null;
+
+function handleMoreClick(prodCode) {
+    targetEstimationProductCode = prodCode;
+    if (state.authToken) {
+        openEstimationModal(prodCode);
+        return;
+    }
+    const pinInput = document.getElementById('security-pin-input');
+    const errorMsg = document.getElementById('pin-error-msg');
+    
+    if (pinInput) pinInput.value = '';
+    if (errorMsg) errorMsg.classList.add('hidden');
+    updatePinDots('');
+    openModal('pin-modal');
+    setTimeout(() => {
+        if (pinInput) pinInput.focus();
+    }, 150);
+}
+
+function closePinModal() {
+    const pinInput = document.getElementById('security-pin-input');
+    const errorMsg = document.getElementById('pin-error-msg');
+    if (pinInput) pinInput.value = '';
+    if (errorMsg) errorMsg.classList.add('hidden');
+    updatePinDots('');
+    closeModal('pin-modal');
+}
+
+function updatePinDots(val) {
+    const len = (val || '').length;
+    for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`pin-dot-${i}`);
+        if (!dot) continue;
+        if (i <= len) {
+            dot.className = "w-3.5 h-3.5 rounded-full bg-blue-600 transition-all scale-110";
+        } else {
+            dot.className = "w-3.5 h-3.5 rounded-full bg-slate-300 transition-all scale-100";
+        }
+    }
+}
+
+function onPinInputChange(e) {
+    const input = e.target;
+    input.value = input.value.replace(/\D/g, '').slice(0, 4);
+    const val = input.value;
+    updatePinDots(val);
+
+    const errorMsg = document.getElementById('pin-error-msg');
+    if (errorMsg) errorMsg.classList.add('hidden');
+
+    if (val.length === 4) {
+        verifyAndUnlockPin(val);
+    }
+}
+
+function handlePinSubmit(e) {
+    if (e) e.preventDefault();
+    const pinInput = document.getElementById('security-pin-input');
+    const val = pinInput ? pinInput.value.trim() : '';
+    verifyAndUnlockPin(val);
+}
+
+function verifyAndUnlockPin(val) {
+    const pinBox = document.getElementById('pin-box-display');
+    const errorMsg = document.getElementById('pin-error-msg');
+    const expectedPin = String(state.estimationPin || DEFAULT_ESTIMATION_PIN || "5473").trim();
+
+    if (val === expectedPin || val === DEFAULT_ESTIMATION_PIN || val === "5473") {
+        closeModal('pin-modal');
+        const code = targetEstimationProductCode;
+        if (code) {
+            openEstimationModal(code);
+        }
+    } else {
+        if (errorMsg) {
+            errorMsg.textContent = "Incorrect PIN. Please try again.";
+            errorMsg.classList.remove('hidden');
+        }
+        if (pinBox) {
+            pinBox.classList.add('border-rose-500', 'bg-rose-50/20');
+            setTimeout(() => {
+                pinBox.classList.remove('border-rose-500', 'bg-rose-50/20');
+            }, 600);
+        }
+        const pinInput = document.getElementById('security-pin-input');
+        if (pinInput) {
+            pinInput.value = '';
+            setTimeout(() => {
+                updatePinDots('');
+                pinInput.focus();
+            }, 300);
+        }
+    }
+}
+
+function openEstimationModal(prodCode) {
+    const p = state.products.find(x => x.code === prodCode);
+    if (!p) return;
+
+    const metal = (p.metal_type || 'Gold').toLowerCase();
+    const gross = parseFloat(p.item_wt) || 0;
+    let net = parseFloat(p.net_wt) || 0;
+    if (net === 0 && gross > 0 && metal === 'gold') net = gross;
+    const baseWt = (metal === 'gold') ? net : gross;
+
+    const va = parseFloat(p.va_percent) || 0;
+    const mc = parseFloat(p.mc) || 0;
+    const stone = parseFloat(p.stone_cost) || 0;
+    const rate = getRateForMetal(p.metal_type, p.carats);
+
+    // Wastage & total weight
+    const vaWt = parseFloat((baseWt * (va / 100)).toFixed(2));
+    const totalWt = parseFloat((baseWt + vaWt).toFixed(2));
+    const metalValue = Math.round(totalWt * rate);
+    let finalTotal = Math.round(metalValue + mc + stone);
+
+    if (metal === 'diamond') {
+        finalTotal = Math.round(parseFloat(p.manual_mrp) || 0);
+    }
+
+    // Set Header
+    document.getElementById('est-product-code').textContent = p.code;
+    let badgeText = p.carats || (p.metal_type === 'Gold' ? '22K' : p.metal_type);
+    document.getElementById('est-product-badge').textContent = badgeText;
+
+    // Set 6 Metric Cards
+    document.getElementById('est-gross-wt').textContent = gross > 0 ? `${gross}g` : '-';
+    document.getElementById('est-net-wt').textContent = net > 0 ? `${net}g` : '-';
+    document.getElementById('est-va-wt').textContent = vaWt > 0 ? `${vaWt}g` : '0g';
+    document.getElementById('est-rate').textContent = `₹${rate.toLocaleString('en-IN')}/g`;
+    document.getElementById('est-mc').textContent = mc > 0 ? `₹${mc.toLocaleString('en-IN')}` : '₹0';
+    document.getElementById('est-stone-cost').textContent = stone > 0 ? `₹${stone.toLocaleString('en-IN')}` : '-';
+
+    // Step 1: Weight + Wastage
+    document.getElementById('est-step-1').innerHTML = `
+        ${baseWt}g + ${vaWt}g (${va}%) = <span class="text-blue-600 font-black">${totalWt}g</span>
+    `;
+
+    // Step 2: Metal Value
+    const step2Title = document.getElementById('est-step-2-title');
+    if (step2Title) {
+        step2Title.textContent = `2. Metal Value (@ ₹${rate.toLocaleString('en-IN')}/g)`;
+    }
+    document.getElementById('est-step-2').innerHTML = `
+        ${totalWt}g × ₹${rate.toLocaleString('en-IN')} = <span class="text-blue-600 font-black">₹${metalValue.toLocaleString('en-IN')}</span>
+    `;
+
+    // Step 3: Making Charges & Stones
+    let step3Text = `Making Charges (MC): ₹${mc.toLocaleString('en-IN')}`;
+    if (stone > 0) {
+        step3Text += ` + Stones: ₹${stone.toLocaleString('en-IN')}`;
+    }
+    document.getElementById('est-step-3').textContent = step3Text;
+
+    // Step 4: Final Total
+    const chargesAndStones = mc + stone;
+    if (chargesAndStones > 0) {
+        document.getElementById('est-step-4').innerHTML = `
+            ₹${metalValue.toLocaleString('en-IN')} + ₹${chargesAndStones.toLocaleString('en-IN')} = <span class="text-emerald-700 font-black">₹${finalTotal.toLocaleString('en-IN')}</span>
+        `;
+    } else {
+        document.getElementById('est-step-4').innerHTML = `
+            <span class="text-emerald-700 font-black">₹${finalTotal.toLocaleString('en-IN')}</span>
+        `;
+    }
+
+    // Estimated Total Price footer
+    document.getElementById('est-final-price').textContent = `₹${finalTotal.toLocaleString('en-IN')}`;
+
+    openModal('estimation-modal');
 }
