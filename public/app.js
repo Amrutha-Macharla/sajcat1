@@ -11,7 +11,7 @@ const DEFAULT_CIPHER = {
 const DEFAULT_FIREBASE_URL = "https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app";
 const DEFAULT_WHATSAPP_NUMBER = "919848728844";
 const DEFAULT_CLOUDINARY_NAME = "dpymwvapj";
-const DEFAULT_CLOUDINARY_PRESET = "ml_default";
+const DEFAULT_CLOUDINARY_PRESET = "amrutha_jewellers";
 
 // Auto-migrate legacy localStorage defaults
 if (localStorage.getItem('aj_firebase_url') === "https://ajcat5-default-rtdb.asia-southeast1.firebasedatabase.app" ||
@@ -24,7 +24,9 @@ if (localStorage.getItem('aj_cloudinary_name') === "agc6iqec" ||
     localStorage.getItem('aj_cloudinary_name') === "hgcqngwq") {
     localStorage.setItem('aj_cloudinary_name', DEFAULT_CLOUDINARY_NAME);
 }
-if (!localStorage.getItem('aj_cloudinary_preset') || localStorage.getItem('aj_cloudinary_preset') === "ajcat5") {
+if (!localStorage.getItem('aj_cloudinary_preset') ||
+    localStorage.getItem('aj_cloudinary_preset') === "ajcat5" ||
+    localStorage.getItem('aj_cloudinary_preset') === "ml_default") {
     localStorage.setItem('aj_cloudinary_preset', DEFAULT_CLOUDINARY_PRESET);
 }
 if (!localStorage.getItem('aj_whatsapp_number') ||
@@ -1134,39 +1136,48 @@ async function handleImageFileSelect(e) {
 
     currentUploadPromise = (async () => {
         let uploadedUrl = null;
+        let cloudinaryErrMsg = null;
+
+        // Read file as Base64 in advance so we always have a bulletproof local fallback
+        let base64Data = null;
+        try {
+            base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } catch (err) {
+            console.warn("Base64 reader error:", err);
+        }
 
         // 1. Try Cloudinary direct upload if configured
         if (state.cloudinaryName && state.cloudinaryPreset) {
             try {
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('upload_preset', state.cloudinaryPreset);
+                formData.append('upload_preset', state.cloudinaryPreset.trim());
                 if (state.cloudinaryKey) formData.append('api_key', state.cloudinaryKey);
 
-                const uploadUrl = `https://api.cloudinary.com/v1_1/${state.cloudinaryName}/image/upload`;
+                const uploadUrl = `https://api.cloudinary.com/v1_1/${state.cloudinaryName.trim()}/image/upload`;
                 const clRes = await fetch(uploadUrl, { method: 'POST', body: formData });
                 const clData = await clRes.json();
 
                 if (clData.secure_url) {
                     uploadedUrl = clData.secure_url;
                 } else if (clData.error) {
-                    console.warn("Cloudinary upload rejected:", clData.error.message);
+                    cloudinaryErrMsg = clData.error.message || "Rejected by Cloudinary";
+                    console.warn("Cloudinary upload rejected:", cloudinaryErrMsg);
                 }
             } catch (err) {
+                cloudinaryErrMsg = err.message || "Network error reaching Cloudinary";
                 console.warn("Cloudinary network error:", err);
             }
         }
 
         // 2. Fallback to local server upload if Cloudinary was not used or failed
-        if (!uploadedUrl) {
+        if (!uploadedUrl && base64Data) {
             try {
-                const base64Data = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-
                 const res = await fetch('/api/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1175,23 +1186,34 @@ async function handleImageFileSelect(e) {
                         image_data: base64Data
                     })
                 });
-                const data = await res.json();
-                if (data.success && data.url) {
-                    uploadedUrl = data.url;
-                } else {
-                    uploadedUrl = base64Data;
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.url) {
+                        uploadedUrl = data.url;
+                    }
                 }
             } catch (err) {
-                console.warn("Local upload error, using base64 fallback:", err);
+                console.warn("Local upload error, falling back to embedded data:", err);
             }
+        }
+
+        // 3. Fallback to embedded Base64 if both Cloudinary & local server were unavailable
+        if (!uploadedUrl && base64Data) {
+            uploadedUrl = base64Data;
         }
 
         if (uploadedUrl) {
             document.getElementById('prod-image-url').value = uploadedUrl;
             updateImagePreview(uploadedUrl);
-            setUploadingState(false, `<span class="text-emerald-600 font-semibold flex items-center gap-1">✓ Photo ready for saving</span>`);
+
+            if (cloudinaryErrMsg) {
+                setUploadingState(false, `<span class="text-amber-600 text-xs font-semibold flex items-center gap-1" title="${cloudinaryErrMsg}">✓ Photo ready (Cloudinary: ${cloudinaryErrMsg})</span>`);
+            } else {
+                setUploadingState(false, `<span class="text-emerald-600 font-semibold flex items-center gap-1">✓ Photo ready for saving</span>`);
+            }
         } else {
-            setUploadingState(false, `<span class="text-rose-500 font-semibold">Upload failed. Please try again.</span>`);
+            const failReason = cloudinaryErrMsg ? `: ${cloudinaryErrMsg}` : '';
+            setUploadingState(false, `<span class="text-rose-500 font-semibold">Upload failed${failReason}. Please try again.</span>`);
         }
     })();
 
