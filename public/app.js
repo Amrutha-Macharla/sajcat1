@@ -10,7 +10,7 @@ const DEFAULT_CIPHER = {
 
 const DEFAULT_FIREBASE_URL = "https://saj-cat1-default-rtdb.asia-southeast1.firebasedatabase.app";
 const DEFAULT_WHATSAPP_NUMBER = "919848728844";
-const DEFAULT_CLOUDINARY_NAME = "hgcqngwq";
+const DEFAULT_CLOUDINARY_NAME = "dpymwvapj";
 const DEFAULT_CLOUDINARY_PRESET = "ml_default";
 
 // Auto-migrate legacy localStorage defaults
@@ -20,7 +20,8 @@ if (localStorage.getItem('aj_firebase_url') === "https://ajcat5-default-rtdb.asi
 }
 if (localStorage.getItem('aj_cloudinary_name') === "agc6iqec" ||
     localStorage.getItem('aj_cloudinary_name') === "wzuhkcid" ||
-    localStorage.getItem('aj_cloudinary_name') === "do2kiuqp4") {
+    localStorage.getItem('aj_cloudinary_name') === "do2kiuqp4" ||
+    localStorage.getItem('aj_cloudinary_name') === "hgcqngwq") {
     localStorage.setItem('aj_cloudinary_name', DEFAULT_CLOUDINARY_NAME);
 }
 if (!localStorage.getItem('aj_cloudinary_preset') || localStorage.getItem('aj_cloudinary_preset') === "ajcat5") {
@@ -611,10 +612,10 @@ function renderCategoryShowcase() {
 
                 return `
                     <div class="product-card bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 flex flex-col">
-                        <!-- Edge-to-Edge Image with 0 margin/padding fully fitting dimensions -->
-                        <div class="relative w-full aspect-square sm:aspect-[4/5] bg-slate-950 overflow-hidden cursor-pointer group flex items-center justify-center" onclick="openFullscreenProduct('${p.code}')" title="Click for Full Screen">
-                            <img src="${img}" alt="${p.code}" class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                        <!-- Full Image with complete natural dimensions (no 1:1 cropping) -->
+                        <div class="relative w-full bg-slate-950 overflow-hidden cursor-pointer group flex items-center justify-center" onclick="openFullscreenProduct('${p.code}')" title="Click for Full Screen">
+                            <img src="${img}" alt="${p.code}" class="w-full h-auto max-h-[85vh] object-contain group-hover:scale-102 transition-transform duration-300 block">
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
                                 <i data-lucide="maximize" class="w-7 h-7"></i>
                             </div>
                         </div>
